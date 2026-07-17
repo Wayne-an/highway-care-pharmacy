@@ -1,19 +1,37 @@
 import { useState } from "react";
 
-function Inventory({ medicines, deleteMedicine, updateMedicine }) {
+function Inventory({ medicines, deleteMedicine, updateMedicine, inventoryFilter }) {
 const [searchTerm, setSearchTerm] = useState("");
 const [editingMedicine, setEditingMedicine] = useState(null);
 
 const filteredMedicines = medicines.filter((medicine) => {
-const search = searchTerm.toLowerCase();
+  const search = searchTerm.toLowerCase();
 
+  const matchesSearch =
+    medicine.name.toLowerCase().includes(search) ||
+    medicine.category.toLowerCase().includes(search);
 
-return (
-  medicine.name.toLowerCase().includes(search) ||
-  medicine.category.toLowerCase().includes(search)
-);
+  const today = new Date();
 
+  const expiryDate = new Date(medicine.expiry);
 
+  const difference =
+    expiryDate - today;
+
+  const daysUntilExpiry =
+    difference / (1000 * 60 * 60 * 24);
+
+  const matchesFilter =
+    inventoryFilter === "all" ||
+    (inventoryFilter === "low-stock" &&
+      medicine.quantity < 20) ||
+    (inventoryFilter === "expiring-soon" &&
+      daysUntilExpiry <= 30 &&
+      daysUntilExpiry >= 0) ||
+    (inventoryFilter === "expired" &&
+      expiryDate < today);
+
+  return matchesSearch && matchesFilter;
 });
 
 return (
@@ -21,7 +39,6 @@ return (
 {/* Inventory Card */} <div className="bg-white rounded-xl shadow p-6 mt-8"> <div className="flex flex-col md:flex-row justify-between gap-4 mb-6"> <h2 className="text-2xl font-bold">
 💊 Medicine Inventory </h2>
 
-```
       <input
         type="text"
         placeholder="🔍 Search medicine..."
@@ -47,15 +64,37 @@ return (
         <tbody>
           {filteredMedicines.map((medicine) => (
             <tr
-              key={medicine.id}
-              className="border-b hover:bg-gray-50"
-            >
+  key={medicine.id}
+  className={`border-b hover:bg-gray-50 ${
+    medicine.quantity < 20
+      ? "bg-red-50"
+      : ""
+  }`}
+>
               <td className="p-3 font-semibold">
                 {medicine.name}
               </td>
 
               <td className="p-3">
-                {medicine.category}
+                <div className="flex items-center gap-2">
+
+  <span
+    className={
+      medicine.quantity < 20
+        ? "bg-red-100 text-red-600 px-3 py-1 rounded"
+        : "bg-green-100 text-green-600 px-3 py-1 rounded"
+    }
+  >
+    {medicine.quantity}
+  </span>
+
+  {medicine.quantity < 20 && (
+    <span className="text-xs text-red-600 font-semibold">
+      Low Stock
+    </span>
+  )}
+
+</div>
               </td>
 
               <td className="p-3">
