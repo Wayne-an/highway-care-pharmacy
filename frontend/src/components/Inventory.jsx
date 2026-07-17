@@ -1,124 +1,141 @@
 import { useState } from "react";
 
 
-function AddMedicine({ addMedicine }) {
+function Inventory({ medicines }) {
+
+  const [searchTerm, setSearchTerm] = useState("");
 
 
-  const [medicine, setMedicine] = useState({
-    name: "",
-    category: "",
-    price: "",
-    quantity: "",
-    expiry: ""
+  const filteredMedicines = medicines.filter((medicine) => {
+
+    const search = searchTerm.toLowerCase();
+
+    return (
+      medicine.name.toLowerCase().includes(search) ||
+      medicine.category.toLowerCase().includes(search)
+    );
+
   });
-
-
-  function handleChange(e) {
-
-    setMedicine({
-      ...medicine,
-      [e.target.name]: e.target.value
-    });
-
-  }
-
-
-  function handleSubmit(e) {
-
-    e.preventDefault();
-
-
-    addMedicine({
-      ...medicine,
-      id: Date.now(),
-      price: Number(medicine.price),
-      quantity: Number(medicine.quantity)
-    });
-
-
-    setMedicine({
-      name: "",
-      category: "",
-      price: "",
-      quantity: "",
-      expiry: ""
-    });
-
-  }
 
 
   return (
 
-    <div className="bg-white shadow rounded-xl p-6 mt-8">
+    <div className="bg-white rounded-xl shadow p-6 mt-8">
 
+      <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
 
-      <h2 className="text-2xl font-bold mb-6">
-        ➕ Add New Medicine
-      </h2>
-
-
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-      >
+        <h2 className="text-2xl font-bold">
+          💊 Medicine Inventory
+        </h2>
 
 
         <input
-          name="name"
-          value={medicine.name}
-          onChange={handleChange}
-          placeholder="Medicine name"
-          className="border p-3 rounded"
+          type="text"
+          placeholder="🔍 Search medicine..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-green-500"
         />
 
-
-        <input
-          name="category"
-          value={medicine.category}
-          onChange={handleChange}
-          placeholder="Category"
-          className="border p-3 rounded"
-        />
+      </div>
 
 
-        <input
-          name="price"
-          value={medicine.price}
-          onChange={handleChange}
-          placeholder="Price"
-          type="number"
-          className="border p-3 rounded"
-        />
+      <div className="overflow-x-auto">
+
+        <table className="w-full text-left">
+
+          <thead>
+
+            <tr className="border-b">
+
+              <th className="p-3">
+                Medicine
+              </th>
+
+              <th className="p-3">
+                Category
+              </th>
+
+              <th className="p-3">
+                Price
+              </th>
+
+              <th className="p-3">
+                Stock
+              </th>
+
+              <th className="p-3">
+                Expiry
+              </th>
+
+            </tr>
+
+          </thead>
 
 
-        <input
-          name="quantity"
-          value={medicine.quantity}
-          onChange={handleChange}
-          placeholder="Quantity"
-          type="number"
-          className="border p-3 rounded"
-        />
+          <tbody>
+
+            {filteredMedicines.map((medicine) => (
+
+              <tr
+                key={medicine.id}
+                className="border-b hover:bg-gray-50"
+              >
+
+                <td className="p-3 font-semibold">
+                  {medicine.name}
+                </td>
 
 
-        <input
-          name="expiry"
-          value={medicine.expiry}
-          onChange={handleChange}
-          type="date"
-          className="border p-3 rounded"
-        />
+                <td className="p-3">
+                  {medicine.category}
+                </td>
 
 
-        <button
-          className="bg-green-600 text-white rounded p-3 md:col-span-2 hover:bg-green-700"
-        >
-          Save Medicine
-        </button>
+                <td className="p-3">
+                  Ksh {medicine.price}
+                </td>
 
 
-      </form>
+                <td className="p-3">
 
+                  <span
+                    className={
+                      medicine.quantity < 20
+                        ? "bg-red-100 text-red-600 px-3 py-1 rounded"
+                        : "bg-green-100 text-green-600 px-3 py-1 rounded"
+                    }
+                  >
+                    {medicine.quantity}
+                  </span>
+
+                </td>
+
+
+                <td className="p-3">
+                  {medicine.expiry}
+                </td>
+
+
+              </tr>
+
+            ))}
+
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      {filteredMedicines.length === 0 && (
+
+        <p className="text-center text-gray-500 py-8">
+          No medicines found.
+        </p>
+
+      )}
 
     </div>
 
@@ -127,4 +144,4 @@ function AddMedicine({ addMedicine }) {
 }
 
 
-export default AddMedicine;
+export default Inventory;
