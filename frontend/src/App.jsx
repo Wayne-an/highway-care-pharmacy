@@ -8,9 +8,13 @@ import Sales from "./components/Sales";
 import SalesHistory from "./components/SalesHistory";
 import RecentSales from "./components/RecentSales";
 
-function App() {
 
-  const [medicines, setMedicines] = useState(() => {
+
+
+function App() {
+     const [activePage, setActivePage] = useState("dashboard");
+     const [sidebarOpen, setSidebarOpen] = useState(false);  
+     const [medicines, setMedicines] = useState(() => {
 
     const savedMedicines = localStorage.getItem("medicines");
 
@@ -70,6 +74,43 @@ const [sales, setSales] = useState(() => {
     );
 
   }
+  function deleteMedicine(id) {
+
+  const updatedMedicines = medicines.filter(
+    (medicine) => medicine.id !== id
+  );
+
+
+  setMedicines(updatedMedicines);
+
+
+  localStorage.setItem(
+    "medicines",
+    JSON.stringify(updatedMedicines)
+  );
+
+}
+
+function updateMedicine(updatedMedicine) {
+
+  const updatedMedicines = medicines.map(
+    (medicine) =>
+
+      medicine.id === updatedMedicine.id
+        ? updatedMedicine
+        : medicine
+  );
+
+
+  setMedicines(updatedMedicines);
+
+
+  localStorage.setItem(
+    "medicines",
+    JSON.stringify(updatedMedicines)
+  );
+
+}
 
 function completeSale(cart, paymentMethod) {
 
@@ -173,59 +214,124 @@ const lowStockMedicines = medicines.filter(
 
     <div className="flex min-h-screen bg-gray-100">
 
-      <Sidebar />
+      <Sidebar
+  activePage={activePage}
+  setActivePage={setActivePage}
+  sidebarOpen={sidebarOpen}
+  setSidebarOpen={setSidebarOpen}
+/>
 
       <div className="flex-1">
 
+        <button
+  onClick={() => setSidebarOpen(!sidebarOpen)}
+  className="md:hidden fixed top-4 left-4 z-40 bg-green-700 text-white p-3 rounded-lg"
+>
+  ☰
+</button>
         <Navbar />
 
         <main className="p-8">
 
-          <h1 className="text-3xl font-bold text-gray-800">
-            Welcome back, Pharmacist 👋
-          </h1>
+          {activePage === "dashboard" && (
 
-          <p className="text-gray-500 mt-2">
-            Manage medicines, sales, and customer orders.
-          </p>
+  <>
 
+    <h1 className="text-3xl font-bold text-gray-800">
+      Welcome back, Pharmacist 👋
+    </h1>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-
-            <StatCard
-              title="Today's Sales"
-              value={`Ksh ${todaysSales}`}
-              icon="💰"
-            />
-
-            <StatCard
-              title="Medicines Available"
-              value={medicines.length}
-              icon="💊"
-            />
-
-            <StatCard
-              title="Low Stock Items"
-              value={lowStockMedicines.length}
-              icon="⚠️"
-            />
-
-          </div>
+    <p className="text-gray-500 mt-2">
+      Manage medicines, sales, and customer orders.
+    </p>
 
 
-          <Inventory medicines={medicines} />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+
+      <StatCard
+        title="Today's Sales"
+        value={`Ksh ${todaysSales}`}
+        icon="💰"
+      />
+
+      <StatCard
+        title="Medicines Available"
+        value={medicines.length}
+        icon="💊"
+      />
+
+      <StatCard
+        title="Low Stock Items"
+        value={lowStockMedicines.length}
+        icon="⚠️"
+      />
+
+      <StatCard
+        title="Total Transactions"
+        value={sales.length}
+        icon="🧾"
+      />
+
+    </div>
 
 
-          <AddMedicine addMedicine={addMedicine} />
+    <RecentSales sales={sales} />
 
-          <Sales 
-          medicines={medicines}
-          completeSale={completeSale}
-           />
+  </>
 
-           <SalesHistory sales={sales} />
+)}
+{activePage === "inventory" && (
 
-           <RecentSales sales={sales} />
+  <>
+
+    <h1 className="text-3xl font-bold">
+      💊 Medicine Inventory
+    </h1>
+
+
+    <Inventory 
+    medicines={medicines}
+    deleteMedicine={deleteMedicine}
+    updateMedicine={updateMedicine}
+     />
+
+
+    <AddMedicine addMedicine={addMedicine} />
+
+  </>
+
+)}
+{activePage === "sales" && (
+
+  <>
+
+    <h1 className="text-3xl font-bold">
+      🧾 Point of Sale
+    </h1>
+
+
+    <Sales
+      medicines={medicines}
+      completeSale={completeSale}
+    />
+
+  </>
+
+)}
+{activePage === "history" && (
+
+  <>
+
+    <h1 className="text-3xl font-bold">
+      📈 Sales History
+    </h1>
+
+
+    <SalesHistory sales={sales} />
+
+  </>
+
+)}
 
         </main>
 
