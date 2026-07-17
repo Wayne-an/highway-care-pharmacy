@@ -4,6 +4,8 @@ import Navbar from "./components/Navbar";
 import StatCard from "./components/StatCard";
 import Inventory from "./components/Inventory";
 import AddMedicine from "./components/AddMedicine";
+import Sales from "./components/Sales";
+import SalesHistory from "./components/SalesHistory";
 
 
 function App() {
@@ -43,6 +45,15 @@ function App() {
 
   });
 
+const [sales, setSales] = useState(() => {
+
+  const savedSales = localStorage.getItem("sales");
+
+  return savedSales
+    ? JSON.parse(savedSales)
+    : [];
+
+});
 
   function addMedicine(newMedicine) {
 
@@ -60,7 +71,99 @@ function App() {
 
   }
 
+function completeSale(cart, paymentMethod) {
 
+  setMedicines((currentMedicines) => {
+
+    return currentMedicines.map((medicine) => {
+
+      const soldItem = cart.find(
+        (item) => item.id === medicine.id
+      );
+
+
+      if (soldItem) {
+
+        return {
+          ...medicine,
+          quantity: medicine.quantity - soldItem.quantity
+        };
+
+      }
+
+
+      return medicine;
+
+    });
+
+  });
+
+
+  const saleTotal = cart.reduce(
+
+    (total, item) => {
+
+      return total + item.price * item.quantity;
+
+    },
+
+    0
+
+  );
+
+
+  const newSale = {
+
+    id: Date.now(),
+
+    items: cart,
+
+    total: saleTotal,
+
+    paymentMethod: paymentMethod,
+
+    date: new Date().toLocaleString()
+
+  };
+
+
+  setSales((currentSales) => {
+
+  const updatedSales = [
+
+    ...currentSales,
+
+    newSale
+
+  ];
+
+
+  localStorage.setItem(
+
+    "sales",
+
+    JSON.stringify(updatedSales)
+
+  );
+
+
+  return updatedSales;
+
+});
+
+}
+
+const todaysSales = sales.reduce(
+
+  (total, sale) => {
+
+    return total + sale.total;
+
+  },
+
+  0
+
+);
   return (
 
     <div className="flex min-h-screen bg-gray-100">
@@ -86,7 +189,7 @@ function App() {
 
             <StatCard
               title="Today's Sales"
-              value="Ksh 45,600"
+              value={`Ksh ${todaysSales}`}
               icon="💰"
             />
 
@@ -109,6 +212,13 @@ function App() {
 
 
           <AddMedicine addMedicine={addMedicine} />
+
+          <Sales 
+          medicines={medicines}
+          completeSale={completeSale}
+           />
+
+           <SalesHistory sales={sales} />
 
         </main>
 
