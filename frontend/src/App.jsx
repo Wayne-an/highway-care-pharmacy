@@ -6,7 +6,7 @@ import Inventory from "./components/Inventory";
 import AddMedicine from "./components/AddMedicine";
 import Sales from "./components/Sales";
 import SalesHistory from "./components/SalesHistory";
-
+import RecentSales from "./components/RecentSales";
 
 function App() {
 
@@ -164,6 +164,11 @@ const todaysSales = sales.reduce(
   0
 
 );
+
+const lowStockMedicines = medicines.filter(
+  (medicine) => medicine.quantity < 20
+);
+
   return (
 
     <div className="flex min-h-screen bg-gray-100">
@@ -185,7 +190,7 @@ const todaysSales = sales.reduce(
           </p>
 
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
 
             <StatCard
               title="Today's Sales"
@@ -201,7 +206,7 @@ const todaysSales = sales.reduce(
 
             <StatCard
               title="Low Stock Items"
-              value="12"
+              value={lowStockMedicines.length}
               icon="⚠️"
             />
 
@@ -219,6 +224,8 @@ const todaysSales = sales.reduce(
            />
 
            <SalesHistory sales={sales} />
+
+           <RecentSales sales={sales} />
 
         </main>
 
