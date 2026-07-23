@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Receipt from "./Receipt";
 
-function Sales({ medicines, completeSale }) {
+function Sales({ medicines }) {
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [searchTerm, setSearchTerm] = useState("");
   const [cart, setCart] = useState([]);
@@ -99,27 +99,63 @@ function Sales({ medicines, completeSale }) {
     0
   );
 
-  function handleCompleteSale() {
-    if (cart.length === 0) {
-      alert("Please add medicine to the cart first.");
-      return;
+  async function handleCompleteSale() {
+  if (cart.length === 0) {
+    alert("Please add medicine to the cart first.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/sales",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          paymentMethod: paymentMethod,
+
+          items: cart.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message);
     }
 
     const sale = {
-      id: Date.now(),
+      id: data.sale.id,
       items: cart,
       total: total,
       paymentMethod: paymentMethod,
       date: new Date().toLocaleString(),
     };
 
-    completeSale(cart, paymentMethod);
-
     setCompletedSale(sale);
 
     setCart([]);
-  }
 
+    alert("Sale completed successfully 🎉");
+
+  } catch (error) {
+    console.error("Sale error:", error);
+
+    alert(
+      error.message ||
+      "Failed to complete sale"
+    );
+  }
+}
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">

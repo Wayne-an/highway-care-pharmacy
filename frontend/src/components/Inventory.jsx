@@ -36,7 +36,7 @@ const filteredMedicines = medicines.filter((medicine) => {
 
 return (
 <>
-{/* Inventory Card */} <div className="bg-white rounded-xl shadow p-6 mt-8"> <div className="flex flex-col md:flex-row justify-between gap-4 mb-6"> <h2 className="text-2xl font-bold">
+ <div className="bg-white rounded-xl shadow p-6 mt-8"> <div className="flex flex-col md:flex-row justify-between gap-4 mb-6"> <h2 className="text-2xl font-bold">
 💊 Medicine Inventory </h2>
 
       <input
