@@ -1,13 +1,10 @@
 function SalesHistory({ sales }) {
-
   return (
-
     <div className="bg-white rounded-xl shadow p-6 mt-8">
 
       <h2 className="text-2xl font-bold mb-6">
         🧾 Sales History
       </h2>
-
 
       {sales.length === 0 ? (
 
@@ -18,7 +15,6 @@ function SalesHistory({ sales }) {
       ) : (
 
         <div className="space-y-4">
-
 
           {sales.map((sale) => (
 
@@ -36,11 +32,12 @@ function SalesHistory({ sales }) {
                   </h3>
 
                   <p className="text-gray-500">
-                    {sale.date}
+                    {new Date(
+                      sale.created_at
+                    ).toLocaleString()}
                   </p>
 
                 </div>
-
 
                 <div className="text-right">
 
@@ -49,13 +46,12 @@ function SalesHistory({ sales }) {
                   </p>
 
                   <p className="text-sm text-gray-500">
-                    {sale.paymentMethod}
+                    {sale.payment_method}
                   </p>
 
                 </div>
 
               </div>
-
 
               <div className="mt-3 text-sm">
 
@@ -80,10 +76,7 @@ function SalesHistory({ sales }) {
       )}
 
     </div>
-
   );
-
 }
-
 
 export default SalesHistory;

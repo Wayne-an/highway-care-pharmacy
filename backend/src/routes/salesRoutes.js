@@ -5,10 +5,17 @@ const {
   getSales,
 } = require("../controllers/salesController");
 
-const router = express.Router();
+const router =
+  express.Router();
 
-router.post("/", createSale);
+router.post(
+  "/",
+  createSale
+);
 
-router.get("/", getSales);
+router.get(
+  "/",
+  getSales
+);
 
 module.exports = router;

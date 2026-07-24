@@ -28,23 +28,11 @@ function App() {
   const [inventoryFilter, setInventoryFilter] =
     useState("all");
 
-  const [medicines, setMedicines] = useState(() => {
-    const savedMedicines =
-      localStorage.getItem("medicines");
+  const [medicines, setMedicines] =
+    useState([]);
 
-    return savedMedicines
-      ? JSON.parse(savedMedicines)
-      : [];
-  });
-
-  const [sales] = useState(() => {
-    const savedSales =
-      localStorage.getItem("sales");
-
-    return savedSales
-      ? JSON.parse(savedSales)
-      : [];
-  });
+  const [sales, setSales] =
+    useState([]);
 
   useEffect(() => {
     async function fetchMedicines() {
@@ -55,12 +43,7 @@ function App() {
 
         const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.message);
-        }
-
         setMedicines(data);
-
       } catch (error) {
         console.error(
           "Failed to fetch medicines:",
@@ -70,7 +53,27 @@ function App() {
     }
 
     fetchMedicines();
+  }, []);
 
+  useEffect(() => {
+    async function fetchSales() {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/sales"
+        );
+
+        const data = await response.json();
+
+        setSales(data);
+      } catch (error) {
+        console.error(
+          "Failed to fetch sales:",
+          error
+        );
+      }
+    }
+
+    fetchSales();
   }, []);
 
   async function addMedicine(newMedicine) {
@@ -79,11 +82,9 @@ function App() {
         "http://localhost:5000/api/medicines",
         {
           method: "POST",
-
           headers: {
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify(newMedicine),
         }
       );
@@ -102,7 +103,6 @@ function App() {
       alert(
         "Medicine added successfully 🎉"
       );
-
     } catch (error) {
       console.error(error);
 
@@ -137,7 +137,6 @@ function App() {
       alert(
         "Medicine deleted successfully 🗑️"
       );
-
     } catch (error) {
       console.error(error);
 
@@ -147,22 +146,16 @@ function App() {
     }
   }
 
-  async function updateMedicine(
-    updatedMedicine
-  ) {
+  async function updateMedicine(updatedMedicine) {
     try {
       const response = await fetch(
         `http://localhost:5000/api/medicines/${updatedMedicine.id}`,
         {
           method: "PUT",
-
           headers: {
             "Content-Type": "application/json",
           },
-
-          body: JSON.stringify(
-            updatedMedicine
-          ),
+          body: JSON.stringify(updatedMedicine),
         }
       );
 
@@ -173,18 +166,16 @@ function App() {
       }
 
       setMedicines((currentMedicines) =>
-        currentMedicines.map(
-          (medicine) =>
-            medicine.id === updatedMedicine.id
-              ? data.medicine
-              : medicine
+        currentMedicines.map((medicine) =>
+          medicine.id === updatedMedicine.id
+            ? data.medicine
+            : medicine
         )
       );
 
       alert(
         "Medicine updated successfully ✏️"
       );
-
     } catch (error) {
       console.error(error);
 
@@ -194,11 +185,74 @@ function App() {
     }
   }
 
+  async function completeSale(
+  cart,
+  paymentMethod
+) {
+  try {
+    const response =
+      await fetch(
+        "http://localhost:5000/api/sales",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            items: cart,
+            paymentMethod,
+          }),
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message
+      );
+    }
+
+    setSales(
+      (currentSales) => [
+        data.sale,
+        ...currentSales,
+      ]
+    );
+
+    const medicinesResponse =
+      await fetch(
+        "http://localhost:5000/api/medicines"
+      );
+
+    const updatedMedicines =
+      await medicinesResponse.json();
+
+    setMedicines(
+      updatedMedicines
+    );
+
+    alert(
+      "Sale completed successfully 🎉"
+    );
+
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      error.message ||
+      "Failed to complete sale"
+    );
+  }
+}
   const todaysSales =
     sales.reduce(
       (total, sale) =>
-        total + sale.total,
-
+        total + Number(sale.total),
       0
     );
 
@@ -211,50 +265,35 @@ function App() {
   const today = new Date();
 
   const expiringSoonMedicines =
-    medicines.filter(
-      (medicine) => {
+    medicines.filter((medicine) => {
+      const expiryDate =
+        new Date(medicine.expiry);
 
-        const expiryDate =
-          new Date(
-            medicine.expiry
-          );
+      const difference =
+        expiryDate - today;
 
-        const difference =
-          expiryDate - today;
+      const daysUntilExpiry =
+        difference /
+        (1000 * 60 * 60 * 24);
 
-        const daysUntilExpiry =
-          difference /
-          (1000 * 60 * 60 * 24);
-
-        return (
-          daysUntilExpiry <= 30 &&
-          daysUntilExpiry >= 0
-        );
-      }
-    );
+      return (
+        daysUntilExpiry <= 30 &&
+        daysUntilExpiry >= 0
+      );
+    });
 
   const expiredMedicines =
     medicines.filter(
       (medicine) =>
-        new Date(
-          medicine.expiry
-        ) < today
+        new Date(medicine.expiry) <
+        today
     );
 
   if (!user) {
     return (
       <Login
         onLogin={(loggedInUser) => {
-
           setUser(loggedInUser);
-
-          localStorage.setItem(
-            "user",
-            JSON.stringify(
-              loggedInUser
-            )
-          );
-
         }}
       />
     );
@@ -290,7 +329,6 @@ function App() {
 
           {activePage === "dashboard" && (
             <>
-
               <h1 className="text-3xl font-bold text-gray-800">
                 Welcome back, {user.name} 👋
               </h1>
@@ -336,7 +374,6 @@ function App() {
                 <button
                   type="button"
                   onClick={() => {
-
                     setActivePage(
                       "inventory"
                     );
@@ -344,11 +381,9 @@ function App() {
                     setInventoryFilter(
                       "low-stock"
                     );
-
                   }}
                   className="text-left w-full bg-red-50 border border-red-200 rounded-xl p-6 hover:shadow-lg transition"
                 >
-
                   <h2 className="text-xl font-bold text-red-700">
                     ⚠️ Low Stock
                   </h2>
@@ -360,13 +395,11 @@ function App() {
                   <p className="text-gray-600">
                     medicines need restocking
                   </p>
-
                 </button>
 
                 <button
                   type="button"
                   onClick={() => {
-
                     setActivePage(
                       "inventory"
                     );
@@ -374,11 +407,9 @@ function App() {
                     setInventoryFilter(
                       "expiring-soon"
                     );
-
                   }}
                   className="text-left w-full bg-yellow-50 border border-yellow-200 rounded-xl p-6 hover:shadow-lg transition"
                 >
-
                   <h2 className="text-xl font-bold text-yellow-700">
                     ⏳ Expiring Soon
                   </h2>
@@ -390,13 +421,11 @@ function App() {
                   <p className="text-gray-600">
                     expire within 30 days
                   </p>
-
                 </button>
 
                 <button
                   type="button"
                   onClick={() => {
-
                     setActivePage(
                       "inventory"
                     );
@@ -404,11 +433,9 @@ function App() {
                     setInventoryFilter(
                       "expired"
                     );
-
                   }}
                   className="text-left w-full bg-gray-100 border border-gray-300 rounded-xl p-6 hover:shadow-lg transition"
                 >
-
                   <h2 className="text-xl font-bold text-gray-700">
                     ❌ Expired
                   </h2>
@@ -420,17 +447,14 @@ function App() {
                   <p className="text-gray-600">
                     medicines should be removed
                   </p>
-
                 </button>
 
               </div>
-
             </>
           )}
 
           {activePage === "inventory" && (
             <>
-
               <h1 className="text-3xl font-bold">
                 💊 Medicine Inventory
               </h1>
@@ -449,31 +473,28 @@ function App() {
               />
 
               <AddMedicine
-                addMedicine={
-                  addMedicine
-                }
+                addMedicine={addMedicine}
               />
-
             </>
           )}
 
           {activePage === "sales" && (
             <>
-
               <h1 className="text-3xl font-bold">
                 🧾 Point of Sale
               </h1>
 
               <Sales
                 medicines={medicines}
+                completeSale={
+                  completeSale
+                }
               />
-
             </>
           )}
 
           {activePage === "history" && (
             <>
-
               <h1 className="text-3xl font-bold">
                 📈 Sales History
               </h1>
@@ -481,7 +502,6 @@ function App() {
               <SalesHistory
                 sales={sales}
               />
-
             </>
           )}
 
